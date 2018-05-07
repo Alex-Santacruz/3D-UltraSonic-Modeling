@@ -1,0 +1,81 @@
+float xView, yView, xView_Initial, yView_Initial;
+float equatorialView, azimuthView;
+boolean scrollLeft, scrollRight, scrollDown, scrollUp;
+boolean panLeft, panRight, panDown, panUp;
+
+void setup(){
+  size(800,800, P3D);                                    // Creates 800x800 display window for 3D object (P3D) rendering
+  noSmooth();                                            // Removes smoothing of straight-edge geometries (removes anti-aliasing)
+  xView_Initial = width/2;
+  yView_Initial = height/2;
+  translate(xView_Initial, yView_Initial, 0);
+  xView = xView_Initial;
+  yView = yView_Initial;
+  equatorialView = 0;
+  azimuthView = 0;
+}
+
+void draw(){
+  
+  background(0);                                         // Sets background color to 0 (black) every loop
+  translate(xView, yView, 0);                            // Moves object by /parameter/ amount
+  rotateX(azimuthView);                                  // Rotates object horizontally by /parameter/ amount
+  rotateY(equatorialView);                               // Rotates object vertically by /parameter/ amount
+  box(50);                                               // Creates 3D object (rectangular prism)
+  
+  if(scrollLeft)                                         // Scrolling
+    xView = xView - 1f;
+    else if(scrollRight)
+      xView = xView + 1f;
+  if(scrollDown) yView = yView + 1f;
+    else if(scrollUp) yView = yView - 1f;
+    
+  if(panLeft)                                            // Panning
+    equatorialView = equatorialView + 0.07f;
+    else if(panRight)
+      equatorialView = equatorialView - 0.07f;
+  if(panDown)
+    azimuthView = azimuthView - 0.07f;
+    else if(panUp)
+      azimuthView = azimuthView + 0.07f;
+  
+}
+
+void keyPressed(){
+  scrollController(key,true);
+  panController(keyCode,true);
+}
+void keyReleased(){
+  scrollController(key,false);
+  panController(keyCode,false);
+}
+  
+boolean scrollController(char button, boolean bool){     // Controls the translation of viewport
+  switch(button){
+    case 'a':                                            // Move left
+      return scrollLeft = bool;
+    case 'd':                                            // Move right
+      return scrollRight = bool;
+    case 's':                                            // Move down
+      return scrollDown = bool;
+    case 'w':                                            // Move up
+      return scrollUp = bool;
+    default:
+      return bool;
+  }
+}
+
+boolean panController(int button, boolean bool){        // Controls the rotation of the viewport
+  switch(button){
+    case LEFT:                                          // Rotate left
+      return panLeft = bool;
+    case RIGHT:                                         // Rotate right
+      return panRight = bool;
+    case DOWN:                                          // Rotate down
+      return panDown = bool;
+    case UP:                                            // Rotate Up
+      return panUp = bool;
+    default:
+      return bool;
+  }
+}
