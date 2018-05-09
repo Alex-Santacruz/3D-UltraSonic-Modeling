@@ -1,0 +1,44 @@
+float x, y, z, xInitial, yInitial, zInitial;
+float dx = 1f;
+float dy = 1f;
+
+ArrayList<PVector> cloudpoints;
+
+void setup(){
+  size(800,800,P3D);
+  translate(width/2,height/2,0);
+  background(0);
+  noSmooth();
+  xInitial = width/2;
+  yInitial = height/2;
+  z = 1f;
+  y = yInitial;
+  x = xInitial;
+  cloudpoints = new ArrayList();
+}
+
+void draw(){
+  cloudpoints.add(new PVector(x, y, z));
+  background(0);
+  int size = cloudpoints.size();
+  for(int i = 0; i < size; i++){
+    PVector points = cloudpoints.get(i);
+    point(points.x, points.y, points.z);
+  }
+
+  if(x == 400){
+    dx = -1f;
+    y = y + 1;
+  }
+  if(x == 0){
+    dx = 1;
+    y = y + 1;
+  }
+  
+  x = x + dx;
+  z = sqrt(pow(x,2) + 25);
+  stroke(0,255,0);
+  line(xInitial,yInitial,0, x,y,z);
+  stroke(250,250,250);
+  point(x,y,z);
+}
