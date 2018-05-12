@@ -1,3 +1,4 @@
+// View Control Variables
 float xView, yView, zView, xView_Initial, yView_Initial, zView_Initial;
 float equatorialView, azimuthView;
 boolean scrollLeft, scrollRight, scrollDown, scrollUp;
@@ -6,6 +7,7 @@ boolean zoomIn, zoomOut, resetView;
 int equatorialViewCounter = 0;
 int azimuthViewCounter = 0;
 
+//Point mapping variables (point cloud and Point Sweeper
 float x, y, z, xInitial, yInitial, zInitial;
 float dx = 1f;
 float dy = 1f;
@@ -14,7 +16,9 @@ ArrayList<PVector> cloudpoints;
 void setup(){
   size(800,800, P3D);                                    // Creates 800x800 display window for 3D object (P3D) rendering
   noSmooth();                                            // Removes smoothing of straight-edge geometries (removes anti-aliasing)
-  xView_Initial = width/2;
+  
+// Setting viewport to middle of screen
+  xView_Initial = width/2;                               
   yView_Initial = height/2;
   zView_Initial = -20;
   translate(xView_Initial, yView_Initial, zView_Initial);
@@ -24,6 +28,7 @@ void setup(){
   equatorialView = 0;
   azimuthView = 0;
   
+// Setting initial coordinates of Point Sweeper and point cloud (with respect to initial viewport setting (see above)
   xInitial = 0;
   yInitial = 0;
   z = 0;
@@ -33,21 +38,22 @@ void setup(){
 }
 
 void draw(){
-  cloudpoints.add(new PVector(x, -y, -z));
+  cloudpoints.add(new PVector(x, -y, -z));               // Create vector in point cloud array with data for new point
   background(0);                                         // Sets background color to 0 (black) every loop
   translate(xView, yView, zView);                        // Moves object by /parameter/ amount
   rotateX(azimuthView);                                  // Rotates object horizontally by /parameter/ amount
   rotateY(equatorialView);                               // Rotates object vertically by /parameter/ amount
- // box(50);                                               // Creates 3D object (rectangular prism)
   
-  if(scrollLeft)                                         // Scrolling
+//Scrolling
+  if(scrollLeft)                                         
     xView = xView - 1f;
     else if(scrollRight)
       xView = xView + 1f;
   if(scrollDown) yView = yView + 1f;
     else if(scrollUp) yView = yView - 1f;
-    
-  if(panLeft){                                           // Panning
+  
+// Panning  
+  if(panLeft){                                           
     equatorialView = equatorialView - 0.07f;
     equatorialViewCounter = equatorialViewCounter - 1;
   }
@@ -63,10 +69,12 @@ void draw(){
       azimuthView = azimuthView + 0.07f;
       azimuthViewCounter = azimuthViewCounter + 1;
     }
-      
-  if(zoomIn) zView = zView + 1f;                          // Zooming
+  
+// Zooming    
+  if(zoomIn) zView = zView + 1f;                          
     else if(zoomOut) zView = zView - 1f;
   
+// Reset
   if(resetView){                                          // Reset view of object to initial (setup) values
     xView = xView_Initial;
     yView = yView_Initial;
@@ -77,12 +85,14 @@ void draw(){
     azimuthViewCounter = 0;
   }
   
+// Draw previous points
   int size = cloudpoints.size();
   for(int i = 0; i < size; i++){
     PVector points = cloudpoints.get(i);
     point(points.x, points.y, points.z);
   }
-
+  
+  // [Temporary] Sweeps x and y
   if(x == 100){
     dx = -5f;
     y = y + 2;
@@ -92,12 +102,12 @@ void draw(){
     y = y + 2;
   }
   
-   x = x + dx;
-  z = sqrt(10000 - sq(x) - sq(y));
-  stroke(0,255,0);
-  line(xInitial,yInitial,0, x,-y,-z);
-  stroke(250,250,250);
-  point(x,-y,-z);
+  x = x + dx;
+  z = sqrt(10000 - sq(x) - sq(y));        // Forms sphere
+  stroke(0,255,0);                        // Color of line
+  line(xInitial,yInitial,0, x,-y,-z);     // Create line from origin to new point in pointcloud
+  stroke(250,250,250);                    // Color of point
+  point(x,-y,-z);                         // Draw new point in point cloud
 }
 
 void keyPressed(){
@@ -161,4 +171,4 @@ boolean resetController(int button, boolean bool){      // Resets to initial val
     default:
       return false;
   }
-}     
+}
