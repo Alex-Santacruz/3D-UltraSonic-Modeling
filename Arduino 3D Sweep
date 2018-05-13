@@ -1,4 +1,5 @@
 #include <Servo.h>.
+#define PI 3.1415926535897932384626433832795
 
 const int trigPin = 13;
 const int echoPin = 11;
@@ -7,13 +8,15 @@ const int vertServoPin = 5;
 
 long duration;
 int distance;
-float radius;
+int radius;
 
 Servo horizServo;
 Servo vertServo;
 
 int vertAngle = 45;
 int horizAngle = 0;
+
+float deg2rad = PI / 180.0;
 
 void setup() {
 
@@ -36,12 +39,10 @@ void loop() {
       horizServo.write(i);
       delay(30);
       radius = pingSensor();
-      Serial.print(radius);
-      Serial.print(",");
-      Serial.print(i);
-      Serial.print(",");
-      Serial.print(j);
-      Serial.print(".");
+      float x = radius*sin(j*deg2rad)*cos(i*deg2rad);
+      float y = radius*sin(j*deg2rad)*sin(i*deg2rad);
+      float z = radius*cos(j*deg2rad);
+      Serial.println(String(-x) + " " + String(y) + " " + String(-z));
     }
     
     Serial.println(" ");
@@ -52,18 +53,16 @@ void loop() {
       horizServo.write(i);
       delay(30);
       radius = pingSensor();
-      Serial.print(radius);
-      Serial.print(",");
-      Serial.print(i);
-      Serial.print(",");
-      Serial.print(j);
-      Serial.print(".");
+      float x = radius*sin(j*deg2rad)*cos(i*deg2rad);
+      float y = radius*sin(j*deg2rad)*sin(i*deg2rad);
+      float z = radius*cos(j*deg2rad);
+      Serial.println(String(-x) + " " + String(y) + " " + String(-z));
     }
     }
   }
 
 
-float pingSensor(){
+int pingSensor(){
   
   digitalWrite(trigPin,LOW);
   delayMicroseconds(2);
