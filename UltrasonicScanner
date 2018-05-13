@@ -1,0 +1,194 @@
+import processing.serial.*;
+
+Serial serial;
+int serialPortNumber = 3;
+
+// View Control Variables
+float xView, yView, zView, xView_Initial, yView_Initial, zView_Initial;
+float equatorialView, azimuthView;
+boolean scrollLeft, scrollRight, scrollDown, scrollUp;
+boolean panLeft, panRight, panDown, panUp;
+boolean zoomIn, zoomOut, resetView;
+int equatorialViewCounter = 0;
+int azimuthViewCounter = 0;
+
+//Point mapping variables (point cloud and Point Sweeper
+float x, y, z, xInitial, yInitial, zInitial;
+float dx = 5f;
+float dy = 1f;
+ArrayList<PVector> cloudpoints;
+boolean off = false;
+
+void setup(){
+  size(800,800, P3D);                                    // Creates 800x800 display window for 3D object (P3D) rendering
+  noSmooth();                                            // Removes smoothing of straight-edge geometries (removes anti-aliasing)
+  
+// Setting viewport to middle of screen
+  xView_Initial = width/2;                               
+  yView_Initial = height/2;
+  zView_Initial = -20;
+  translate(xView_Initial, yView_Initial, zView_Initial);
+  xView = xView_Initial;
+  yView = yView_Initial;
+  zView = zView_Initial;
+  equatorialView = 0;
+  azimuthView = 0;
+  
+// Setting initial coordinates of Point Sweeper and point cloud (with respect to initial viewport setting (see above)
+  xInitial = 0;
+  yInitial = 0;
+  z = 0;
+  y = yInitial;
+  x = xInitial;
+  cloudpoints = new ArrayList();
+  String[] serialPorts = Serial.list();
+  String serialPort = serialPorts[serialPortNumber];
+  serial = new Serial(this, serialPort, 9600);
+}
+
+void draw(){
+  String input = serial.readStringUntil(10);
+  if(input != null){
+    String[] components = split(input, ' ');
+    if(components.length == 3){
+      cloudpoints.add(new PVector(float(components[0]), float(components[1]), float(components[2])));
+    }
+  }
+  background(0);                                         // Sets background color to 0 (black) every loop
+  translate(xView, yView, zView);                        // Moves object by /parameter/ amount
+  rotateX(azimuthView);                                  // Rotates object horizontally by /parameter/ amount
+  rotateY(equatorialView);                               // Rotates object vertically by /parameter/ amount
+  
+//Scrolling
+  if(scrollLeft)                                         
+    xView = xView - 1f;
+    else if(scrollRight)
+      xView = xView + 1f;
+  if(scrollDown) yView = yView + 1f;
+    else if(scrollUp) yView = yView - 1f;
+  
+// Panning  
+  if(panLeft){                                           
+    equatorialView = equatorialView - 0.07f;
+    equatorialViewCounter = equatorialViewCounter - 1;
+  }
+    else if(panRight){
+      equatorialView = equatorialView + 0.07f;
+      equatorialViewCounter = equatorialViewCounter + 1;
+    }
+  if(panDown){
+    azimuthView = azimuthView - 0.07f;
+    azimuthViewCounter = azimuthViewCounter - 1;
+  }
+    else if(panUp){
+      azimuthView = azimuthView + 0.07f;
+      azimuthViewCounter = azimuthViewCounter + 1;
+    }
+  
+// Zooming    
+  if(zoomIn) zView = zView + 1f;                          
+    else if(zoomOut) zView = zView - 1f;
+  
+// Reset
+  if(resetView){                                          // Reset view of object to initial (setup) values
+    xView = xView_Initial;
+    yView = yView_Initial;
+    zView = zView_Initial;
+    equatorialView = equatorialView - equatorialViewCounter*0.07f;
+    equatorialViewCounter = 0;
+    azimuthView = azimuthView - azimuthViewCounter*0.07f;
+    azimuthViewCounter = 0;
+  }
+  
+// Draw previous points
+  int size = cloudpoints.size();
+  for(int i = 0; i < size; i++){
+    PVector points = cloudpoints.get(i);
+    point(points.x, points.y, points.z);
+  }
+  
+// Saves cloud points to txt file
+  if(off){
+    String[] stringCloudPoints = new String[size];
+    for(int i = 0; i < size; i++){
+      PVector points = cloudpoints.get(i);
+      String stringPoints = str(points.x) + str(points.y) + str(points.z);
+      stringCloudPoints[i] = stringPoints;
+    }
+    
+    saveStrings("mapeo.txt",stringCloudPoints);
+    exit();
+  }
+  
+  
+  x = x + dx;
+  z = sqrt(10000 - sq(x) - sq(y));        // Forms sphere
+  stroke(0,255,0);                        // Color of line
+  line(xInitial,yInitial,0, x,-y,-z);     // Create line from origin to new point in pointcloud
+  stroke(250,250,250);                    // Color of point
+  point(x,-y,-z);                         // Draw new point in point cloud
+}
+
+
+void keyPressed(){
+  scrollController(key,true);
+  panController(keyCode,true);
+  zoomController(key,true);
+  resetController(keyCode,true);
+}
+void keyReleased(){
+  scrollController(key,false);
+  panController(keyCode,false);
+  zoomController(key,false);
+  resetController(keyCode,false);
+}
+  
+boolean scrollController(char button, boolean bool){     // Controls the translation of viewport
+  switch(button){
+    case 'a':                                            // Move left
+      return scrollLeft = bool;
+    case 'd':                                            // Move right
+      return scrollRight = bool;
+    case 's':                                            // Move down
+      return scrollDown = bool;
+    case 'w':                                            // Move up
+      return scrollUp = bool;
+    default:
+      return bool;
+  }
+}
+
+boolean panController(int button, boolean bool){        // Controls the rotation of the viewport
+  switch(button){
+    case LEFT:                                          // Rotate left
+      return panLeft = bool;
+    case RIGHT:                                         // Rotate right
+      return panRight = bool;
+    case DOWN:                                          // Rotate down
+      return panDown = bool;
+    case UP:                                            // Rotate Up
+      return panUp = bool;
+    default:
+      return bool;
+  }
+}
+
+boolean zoomController(char button, boolean bool){      // Controls the depth of the viewport
+  switch(button){
+    case 'e':                                           // Zoom in
+      return zoomIn = bool;
+    case 'q':                                           // Zoom out
+      return zoomOut = bool;
+    default:
+      return bool;
+  }
+}
+
+boolean resetController(int button, boolean bool){      // Resets to initial values
+  switch(button){
+    case BACKSPACE:                                     // Reset
+      return resetView = bool;
+    default:
+      return false;
+  }
+}
