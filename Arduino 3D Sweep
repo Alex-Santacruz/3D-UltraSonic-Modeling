@@ -1,0 +1,76 @@
+#include <Servo.h>.
+
+const int trigPin = 13;
+const int echoPin = 11;
+const int horizServoPin = 3;
+const int vertServoPin = 5;
+
+long duration;
+int distance;
+float radius;
+
+Servo horizServo;
+Servo vertServo;
+
+int vertAngle = 45;
+int horizAngle = 0;
+
+void setup() {
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
+  horizServo.attach(horizServoPin);
+  vertServo.attach(vertServoPin);
+  horizServo.write(horizAngle);
+  vertServo.write(vertAngle);
+
+}
+
+void loop() {
+
+  for(int j = vertAngle; j <= 135; j++){
+    vertServo.write(j);
+    Serial.println(" ");
+    for(int i = horizAngle; i <= 180; i++){
+      horizServo.write(i);
+      delay(30);
+      radius = pingSensor();
+      Serial.print(radius);
+      Serial.print(",");
+      Serial.print(i);
+      Serial.print(",");
+      Serial.print(j);
+      Serial.print(".");
+    }
+    
+    Serial.println(" ");
+    j++;
+    vertServo.write(j);
+    
+    for(int i = 180; i >= horizAngle; i--){
+      horizServo.write(i);
+      delay(30);
+      radius = pingSensor();
+      Serial.print(radius);
+      Serial.print(",");
+      Serial.print(i);
+      Serial.print(",");
+      Serial.print(j);
+      Serial.print(".");
+    }
+    }
+  }
+
+
+float pingSensor(){
+  
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin,HIGH);
+  distance = duration*0.034/2;
+  return distance;
+}
